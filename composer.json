@@ -1,5 +1,5 @@
 {
-  "name": "thatsus/laravel-redlock",
+  "name": "rbritton/laravel-redlock",
   "description": "Redis distributed locks for laravel",
   "license": "MIT",
   "keywords": ["redlock", "laravel redis lock", "redis lock"],
@@ -18,9 +18,9 @@
     }
   ],
   "require": {
-    "php": ">=5.4.0",
-    "illuminate/support": "^5.0",
-    "illuminate/console": "^5.0",
+    "php": ">=7.1.0",
+    "illuminate/support": "^6.0",
+    "illuminate/console": "^6.0",
     "predis/predis": "^1.1"
   },
   "require-dev": {
