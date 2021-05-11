@@ -11,20 +11,19 @@ class RedLock
     private $retryCount;
     private $clockDriftFactor = 0.01;
     private $quorum;
-    private $servers = array();
-    private $instances = array();
+	private $instances;
 
-    public function __construct(array $servers, $retryDelay = 200, $retryCount = 3)
+    public function __construct(array $instances, $retryDelay = 200, $retryCount = 3)
     {
-        $this->servers = $servers;
+		$this->instances = $instances;
         $this->retryDelay = $retryDelay;
         $this->retryCount = $retryCount;
-        $this->quorum = min(count($servers), (count($servers) / 2 + 1));
+		$serverCount = count($instances);
+        $this->quorum = min($serverCount, $serverCount / 2 + 1);
     }
 
     public function lock($resource, $ttl)
     {
-        $this->initInstances();
         $token = uniqid();
         $retry = $this->retryCount;
         do {
@@ -62,7 +61,6 @@ class RedLock
 
     public function unlock(array $lock)
     {
-        $this->initInstances();
         $resource = $lock['resource'];
         $token    = $lock['token'];
         foreach ($this->instances as $instance) {
@@ -70,26 +68,9 @@ class RedLock
         }
     }
 
-    private function initInstances()
-    {
-        $app = app();
-        if (empty($this->instances)) {
-            foreach ($this->servers as $server) {
-                // support newer and older Laravel 5.*
-                if (method_exists($app, 'makeWith')) {
-                    $redis = $app->makeWith(Redis::class, ['parameters' => $server]);
-                } else {
-                    $redis = $app->make(Redis::class, [$server]);
-                }
-                $this->instances[] = $redis;
-            }
-        }
-    }
-
     private function lockInstance($instance, $resource, $token, $ttl)
     {
         return $instance->set($resource, $token, "PX", $ttl, "NX");
-        //return $instance->set($resource, $token, ['NX', 'PX' => $ttl]);
     }
 
     private function unlockInstance($instance, $resource, $token)
@@ -102,7 +83,6 @@ class RedLock
             end
         ';
         return $instance->eval($script, 1, $resource, $token);
-        //return $instance->eval($script, [$resource, $token], 1);
     }
 
     public function refreshLock(array $lock)

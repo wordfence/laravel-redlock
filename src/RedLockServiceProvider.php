@@ -4,6 +4,7 @@ namespace ThatsUs\RedLock;
 
 use Illuminate\Support\ServiceProvider;
 use ThatsUs\RedLock\RedLock;
+use Illuminate\Support\Facades\Redis;
 
 class RedLockServiceProvider extends ServiceProvider{
     /**
@@ -22,7 +23,7 @@ class RedLockServiceProvider extends ServiceProvider{
         // store to container
         $this->app->singleton('redlock', function ($app) {
             return new RedLock(
-                config('database.redis.servers') ?: [config('database.redis.default')], 
+                [Redis::connection()],
                 config('database.redis.redis_lock.retry_delay'), 
                 config('database.redis.redis_lock.retry_count')
             );
